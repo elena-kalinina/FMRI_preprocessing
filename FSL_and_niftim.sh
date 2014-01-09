@@ -72,6 +72,7 @@ do
 rm $file
 done
 
+#5. Temporal filtering and detrending at this point are handed over to the NiftiMasker tool from the Nilearn library
 python detrend_and_tmpf.py
 
 
