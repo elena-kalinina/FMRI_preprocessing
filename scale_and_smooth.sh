@@ -1,6 +1,6 @@
 #!/bin/bash 
 #preproc_test.sh
-# Preprocessing fMRI files with FSL
+# Preprocessing fMRI files with FSL - Part III: scaling = subtracting the mean image from each volume; next the volumes are concatenated in time into runs and smoothed spatially.
 
 #Number of runs in the experiment
 nruns=6
