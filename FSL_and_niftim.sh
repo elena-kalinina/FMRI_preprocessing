@@ -3,17 +3,18 @@
 # Preprocessing fMRI files with FSL - Part I: conversion from dicom to nifti, slice timing correction, brain extraction and movement correction with FSL + temporal filtering and detrending is then passed over to a python script. Temporal filtering (low pass) and detrending is done with the Niftimasker tool. 
 
 #Number of runs in the experiment
-nruns=6
+nruns=4
 
 #Subject ID, experiment date
-SubjID="19720216VLRZ"
+SubjID="19900422ADDL"
 
 #Directory with the dicom files
-DCMD="/home/elena/emoa/DATA/20130429_19720216VLRZ/dicom/"
+#Directory with the dicom files
+DCMD="/home/elena/ATTEND/DATA/PercIm/ADDL/"
 # source directory, where nii files are stored
-SRCD="/home/elena/emoa/DATA/20130410_19720216VLRZ/nii_files/"
+SRCD="/home/elena/ATTEND/DATA/PercIm/ADDL/"
 #Target Directory where preprocessed files are to be stored
-TGTD="/home/elena/emoa/DATA/20130429_19720216VLRZ/preprocessed_nii/"
+TGTD="/home/elena/ATTEND/DATA/PercIm/ADDL/preprocessed/"
 
 
 ext=".nii.gz"
@@ -27,9 +28,9 @@ printf -v SUBDIR "Run%02d" "$run"
 
 for file in $DCMD$SUBDIR*
 do
-mkdir $SRCD$run
-dcm2nii -4 n -c n -e n -g n -i y -n y -o $SRCD$run -p n $file
-
+#mkdir $SRCD$run
+#dcm2nii -4 n -c n -e n -g n -i y -n y -m n -o $SRCD$run -p n $file
+dcm2nii -4 n -c n -e n -g n -i y -n y -m n -o $SRCD$SUBDIR -p n $file
 done
 done
 
@@ -51,29 +52,36 @@ done
 
 #3. Brain extraction
 
-suff=_be
+suff="_be"
 FILE_PATTERN="*_stc*"
-
-for file in `ls $SRCD/$FILE_PATTERN`
+for run in `seq $nruns`
 do
- newname="${file%%.*}"
+printf -v SUBDIR "Run%02d" "$run"
+for file in `ls $SRCD$SUBDIR/$FILE_PATTERN`
+do
+newname="${file%%.*}"
 if [[ ! "$newname" =~ "$suff" ]]; then
  bet $file $newname$suff$ext
 rm $file
 fi
 done
+done
 
 #4. Motion correction
 #Options can be activated for saving parameters
 FILE_PATTERN="*_be*"
-for file in `ls $SRCD$FILE_PATTERN`
+for run in `seq $nruns`
+do
+printf -v SUBDIR "Run%02d" "$run"
+for file in `ls $SRCD$SUBDIR/$FILE_PATTERN`
 do
   mcflirt -in $file #-mats -plots
 rm $file
 done
+done
 
 #5. Temporal filtering and detrending at this point are handed over to the NiftiMasker tool from the Nilearn library
-python detrend_and_tmpf.py
+#python detrend_and_tmpf.py
 
 
 
