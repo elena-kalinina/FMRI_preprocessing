@@ -6,25 +6,25 @@
 nruns=4
 
 #Subject ID, experiment date
-SubjID="19900705BADC"
+SubjID="19900422ADDL"
 
 #Directory with the dicom files
-DCMD="/home/elena/emoa/DATA/20130429_19900705BADC/dicom/"
+#DCMD="/home/elena/emoa/DATA/20130429_19900705BADC/dicom/"
 # source directory, where nii files are stored
-SRCD="/home/elena/emoa/DATA/20130429_19900705BADC/nii_files/"
+SRCD="/home/elena/ATTEND/DATA/PercIm/ADDL/"
 #Target Directory where preprocessed files are to be stored
-TGTD="/home/elena/emoa/DATA/20130429_19900705BADC/preprocessed_nii/"
+TGTD="/home/elena/ATTEND/DATA/PercIm/ADDL/preprocessed/"
 #Directory with anatomy files
-ANTD="/home/elena/emoa/DATA/anatomy/converted/Serena/"
+ANTD="/home/elena/ATTEND/DATA/Anatomy/ADDL/ses1/"
 
 #Anatomical image
-ANAT="19900705BADC_be_restore.nii.gz"
+ANAT="19900422ADDL_be_restore.nii.gz"
 
 #Path to template
 TMLD="/usr/share/fsl/5.0/data/standard/MNI152_T1_2mm_brain.nii.gz"
 
 #Path to Functional reference image (in this case, central image of the scanning session)
-"/home/elena/emoa/DATA/20130410_19761110MRKS/preprocessed_nii/rf_nppmultiscan_run4_0001_stc_be_mcf.nii.gz"
+FREF_PR="/home/elena/ATTEND/DATA/PercIm/ADDL/Run03/20140509_09362119900422ADDL201405090810_001_run3_stc_be_mcf.nii.gz"
 ext=".nii.gz"
 
 #Functional to Structural Native Space
@@ -43,11 +43,30 @@ convert_xfm -omat SF2T.mat -concat  SA2T.mat F2S.mat
 
 #Functional to Template using parameters from the previous transformations
 #Adjust for filename pattern if necessary
-suffix=_nrm #functional normalized to template
-FILE_PATTERN="19900705BADC_run?.nii.gz"
-for file in `ls $TGTD/$FILE_PATTERN`
+suffix="_nrm" #functional normalized to template
+FILE_PATTERN="*_stc_be_mcf.nii.gz"
+
+for run in `seq $nruns`
+do
+printf -v SUBDIR "Run%02d" "$run"
+for file in `ls $SRCD$SUBDIR/$FILE_PATTERN`
 do
  newname="${file%%.*}"
  flirt -in $file -ref $TMLD  -out $newname$suffix -applyxfm -init SF2T.mat
 rm $file
 done
+done
+
+FILE_PATTERN="*_stc_be_mcf_nrm*"
+for run in `seq $nruns`
+do
+printf -v SUBDIR "Run%02d/" "$run"
+#for file in `ls $SRCD$SUBDIR$FILE_PATTERN`
+#do
+fslmerge -t ${SubjID}_run$run $SRCD$SUBDIR$FILE_PATTERN
+#done
+mv ${SubjID}_run$run* $TGTD
+
+done
+
+
